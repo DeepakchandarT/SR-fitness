@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR Gyms — Client Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-light: #0f0f0f;
+            --bg-grey: #1a1a1a;
+            --border-color: rgba(255, 255, 255, 0.5);
+            --text-main: #ffffff;
+            --text-muted: #e0e0e0;
+            --light-grey: #f0f0f0;
+            --font-heading: 'Inter', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, #16161a 0%, var(--bg-dark) 70%);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(8, 8, 8, 0.85);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .logo em { font-style: normal; color: var(--text-muted); }
+
+        .user-info { display: flex; align-items: center; gap: 1.5rem; }
+        .user-email { font-size: 0.85rem; color: var(--light-grey); }
+
+        .btn-outline {
+            text-decoration: none;
+            padding: 0.55rem 1.2rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-outline:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        /* Access Guard Page */
+        .guard-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 3.5rem;
+            border-radius: 4px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-card h2 { font-size: 1.5rem; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+        .login-card p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; text-align: left; margin-bottom: 1.2rem; }
+        .form-group label { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; }
+        .form-group input {
+            background: var(--bg-grey);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 0.8rem 1rem;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus { border-color: rgba(255,255,255,0.25); }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-transform: uppercase;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover { background: #e0e0e0; }
+
+        /* Main Dashboard */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 2rem;
+            width: 100%;
+        }
+
+        .dashboard-header { grid-column: 1/-1; margin-bottom: 1rem; }
+        .welcome-title { font-size: 2.2rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+        .quote-banner { background: var(--bg-light); border: 1px solid var(--border-color); padding: 1.2rem 1.8rem; border-radius: 4px; font-size: 0.85rem; color: var(--text-muted); letter-spacing: 0.02em; }
+
+        .card {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title { font-family: var(--font-heading); font-size: 1.1rem; letter-spacing: 0.1em; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-grey); border: 1px solid var(--border-color); border-radius: 4px; padding: 1.5rem; text-align: center; }
+        .stat-num { font-size: 1.8rem; font-weight: 800; font-family: var(--font-heading); margin-bottom: 0.2rem; }
+        .stat-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+        /* Workout Logger */
+        .log-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .log-form-grid .full { grid-column: 1/-1; }
+        
+        .log-form-grid input, .log-form-grid select {
+            background: var(--bg-grey);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.88rem;
+            width: 100%;
+        }
+
+        .log-form-grid select option { background: #111; }
+
+        .log-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; max-height: 250px; overflow-y: auto; }
+        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1rem; background: var(--bg-grey); border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; }
+        .log-item-details { display: flex; flex-direction: column; gap: 2px; }
+        .log-item-workout { font-weight: 700; color: #fff; text-transform: uppercase; }
+        .log-item-stats { font-size: 0.78rem; color: var(--text-muted); }
+        .log-item-date { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* Report Display */
+        .report-section { display: flex; flex-direction: column; gap: 1.2rem; }
+        .report-chip { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 0.8rem 0; font-size: 0.9rem; }
+        .report-chip-name { color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; }
+        .report-chip-val { font-weight: 700; }
+
+        .score-row { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.2rem; }
+        .score-box { background: var(--bg-grey); width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; border-radius: 4px; border: 1px solid var(--border-color); }
+        .score-info h5 { font-size: 0.9rem; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .score-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+        @media (max-width: 900px) {
+            main { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Access Guard Page (Shows when not authenticated) -->
+    <div id="authGuard" class="guard-container" style="display: none;">
+        <div class="login-card">
+            <h2>CLIENT PORTAL</h2>
+            <p>Please enter your client account details to access your dashboard</p>
+            <form onsubmit="handleGuardLogin(event)">
+                <div class="form-group">
+                    <label>EMAIL ADDRESS</label>
+                    <input type="email" id="guardUser" placeholder="client" required>
+                </div>
+                <div class="form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="guardPass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-submit">LOG IN</button>
+            </form>
+            <p style="margin-top: 1.5rem; font-size: 0.78rem; color: var(--text-muted);">
+                Use demo account: <strong>client</strong> / <strong>client</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Portal Dashboard -->
+    <div id="portalDashboard" style="display: none; flex: 1; flex-direction: column;">
+        <header>
+            <div class="header-container">
+                <div class="logo">SR<em>.</em>GYMS</div>
+                <div class="user-info">
+                    <span id="displayUser" class="user-email">client@srgyms.com</span>
+                    <button class="btn-outline" onclick="handleLogout()">LOG OUT</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="dashboard-header">
+                <h1 class="welcome-title">WORKOUT DESK</h1>
+                <div class="quote-banner" id="dashboardQuote">
+                    "Discipline is choosing between what you want now and what you want most." — Abraham Lincoln
+                </div>
+            </div>
+
+            <!-- Left Panel -->
+            <div class="panel-left">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-num">IRON</div>
+                        <div class="stat-label">Membership</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num" id="statStreak">5</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num" id="statTotalLog">12</div>
+                        <div class="stat-label">Logged Sets</div>
+                    </div>
+                </div>
+
+                <!-- Workout Logger -->
+                <div class="card">
+                    <div class="card-title">LOG WORKOUT SET</div>
+                    <form onsubmit="saveWorkoutSet(event)">
+                        <div class="log-form-grid">
+                            <div class="af">
+                                <label>Muscle Group</label>
+                                <select id="logMuscle" required>
+                                    <option value="chest">Chest</option>
+                                    <option value="back">Back</option>
+                                    <option value="legs">Legs</option>
+                                    <option value="shoulders">Shoulders</option>
+                                    <option value="arms">Arms</option>
+                                </select>
+                            </div>
+                            <div class="af">
+                                <label>Exercise</label>
+                                <input type="text" id="logExercise" placeholder="Bench Press" required>
+                            </div>
+                            <div class="af">
+                                <label>Sets / Reps</label>
+                                <input type="text" id="logReps" placeholder="3 Sets x 10 Reps" required>
+                            </div>
+                            <div class="af">
+                                <label>Weight Load (kg)</label>
+                                <input type="text" id="logWeight" placeholder="60 kg" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit" style="margin-top: 0;">LOG SET ENTRY</button>
+                    </form>
+                </div>
+
+                <!-- Log History -->
+                <div class="card">
+                    <div class="card-title">RECENT WORKOUT ENTRIES</div>
+                    <div class="log-list" id="loggedWorkouts">
+                        <!-- Entries rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="panel-right">
+                <!-- AI Posture Analysis Summary -->
+                <div class="card">
+                    <div class="card-title">AI FITNESS PROFILE</div>
+                    <div id="noReportMsg" style="display: block; text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.85rem;">
+                        No MediaPipe scan data registered yet.<br>
+                        <a href="ragav_v1_pro.html#ai-analysis" style="color: #fff; text-decoration: underline; margin-top: 0.5rem; display: inline-block;">Perform first scan</a>
+                    </div>
+                    <div id="reportSummaryBox" style="display: none;">
+                        <div class="score-row">
+                            <div class="score-box" id="repScore">82</div>
+                            <div class="score-info">
+                                <h5>Overall Fitness Score</h5>
+                                <span id="repLabel" style="font-size: 0.78rem; font-weight: 700; opacity: 0.8;">Optimal</span>
+                            </div>
+                        </div>
+                        <div class="report-section">
+                            <div class="report-chip"><span class="report-chip-name">BMI Index</span><span id="repBMI" class="report-chip-val">23.5</span></div>
+                            <div class="report-chip"><span class="report-chip-name">BMR Calories</span><span id="repBMR" class="report-chip-val">1750 kcal</span></div>
+                            <div class="report-chip"><span class="report-chip-name">TDEE Intake</span><span id="repTDEE" class="report-chip-val">2200 kcal</span></div>
+                            <div class="report-chip"><span class="report-chip-name">Symmetry Index</span><span id="repSym" class="report-chip-val">88%</span></div>
+                            <div class="report-chip"><span class="report-chip-name">Posture Score</span><span id="repPost" class="report-chip-val">85/100</span></div>
+                            <div class="report-chip"><span class="report-chip-name">Shoulder Width</span><span id="repShw" class="report-chip-val">42 cm</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gym Quick Links -->
+                <div class="card">
+                    <div class="card-title">QUICK NAVIGATION</div>
+                    <a href="ragav_v1_pro.html" class="btn-outline" style="display: block; text-align: center; margin-bottom: 0.8rem;">Main Gym Site</a>
+                    <a href="ragav_v1_pro.html#pricing" class="btn-outline" style="display: block; text-align: center;">Upgrade Membership</a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check Authentication status
+        function checkAuth() {
+            const loggedUser = localStorage.getItem('logged_in_client');
+            const authGuard = document.getElementById('authGuard');
+            const portalDashboard = document.getElementById('portalDashboard');
+
+            if (loggedUser) {
+                authGuard.style.display = 'none';
+                portalDashboard.style.display = 'flex';
+                document.getElementById('displayUser').textContent = loggedUser;
+                loadDashboardData();
+            } else {
+                authGuard.style.display = 'flex';
+                portalDashboard.style.display = 'none';
+            }
+        }
+
+        // Login handling from guard card
+        function handleGuardLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('guardUser').value.trim();
+            const pass = document.getElementById('guardPass').value;
+
+            let users = JSON.parse(localStorage.getItem('gym_clients') || '[]');
+            const foundUser = users.find(u => u.email === user && u.password === pass);
+
+            if (foundUser || (user === 'demo@email.com' && pass === 'password') || (user === 'client' && pass === 'client')) {
+                localStorage.setItem('logged_in_client', user);
+                checkAuth();
+            } else {
+                alert('Invalid credentials! Use "client" and "client" for entry.');
+            }
+        }
+
+        // Logout
+        function handleLogout() {
+            localStorage.removeItem('logged_in_client');
+            window.location.reload();
+        }
+
+        // Save sets to client logs in localStorage
+        function saveWorkoutSet(e) {
+            e.preventDefault();
+            const muscle = document.getElementById('logMuscle').value;
+            const exercise = document.getElementById('logExercise').value.trim();
+            const reps = document.getElementById('logReps').value.trim();
+            const weight = document.getElementById('logWeight').value.trim();
+            const date = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+            const userKey = localStorage.getItem('logged_in_client');
+            const storageKey = `workout_logs_${userKey}`;
+            
+            let logs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            logs.unshift({ muscle, exercise, reps, weight, date });
+            localStorage.setItem(storageKey, JSON.stringify(logs));
+
+            // update stats
+            let streak = parseInt(localStorage.getItem(`workout_streak_${userKey}`) || '5');
+            localStorage.setItem(`workout_streak_${userKey}`, streak + 1);
+
+            e.target.reset();
+            loadDashboardData();
+        }
+
+        // Retrieve and load dashboard data
+        function loadDashboardData() {
+            const userKey = localStorage.getItem('logged_in_client');
+            const storageKey = `workout_logs_${userKey}`;
+            
+            // 1. Load Logs
+            let logs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const container = document.getElementById('loggedWorkouts');
+            
+            if (logs.length === 0) {
+                // Seed default logs if empty
+                logs = [
+                    { muscle: 'shoulders', exercise: 'Dumbbell Press', reps: '4 Sets x 12 Reps', weight: '22 kg', date: 'Yesterday, 06:12 PM' },
+                    { muscle: 'chest', exercise: 'Incline Bench Press', reps: '3 Sets x 8 Reps', weight: '70 kg', date: '2 days ago' },
+                    { muscle: 'legs', exercise: 'Barbell Squat', reps: '4 Sets x 10 Reps', weight: '90 kg', date: '3 days ago' }
+                ];
+                localStorage.setItem(storageKey, JSON.stringify(logs));
+            }
+
+            container.innerHTML = '';
+            logs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `
+                    <div class="log-item-details">
+                        <div class="log-item-workout">[${log.muscle}] ${log.exercise}</div>
+                        <div class="log-item-stats">${log.reps} · Load: ${log.weight}</div>
+                    </div>
+                    <div class="log-item-date">${log.date}</div>
+                `;
+                container.appendChild(item);
+            });
+
+            // 2. Load Stats
+            const streak = localStorage.getItem(`workout_streak_${userKey}`) || '5';
+            document.getElementById('statStreak').textContent = streak;
+            document.getElementById('statTotalLog').textContent = logs.length;
+
+            // 3. Load Scan Report
+            const scanDataStr = localStorage.getItem('last_scan_report');
+            const noReportMsg = document.getElementById('noReportMsg');
+            const summaryBox = document.getElementById('reportSummaryBox');
+
+            if (scanDataStr) {
+                const r = JSON.parse(scanDataStr);
+                noReportMsg.style.display = 'none';
+                summaryBox.style.display = 'block';
+                
+                document.getElementById('repScore').textContent = r.fitnessScore;
+                document.getElementById('repLabel').textContent = r.fitnessScore >= 75 ? 'Excellent Profile' : r.fitnessScore >= 55 ? 'Optimal Profile' : 'Conditioning Required';
+                document.getElementById('repBMI').textContent = r.bmi;
+                document.getElementById('repBMR').textContent = `${r.bmr} kcal`;
+                document.getElementById('repTDEE').textContent = `${r.tdee} kcal`;
+                document.getElementById('repSym').textContent = `${r.symmetryScore}%`;
+                document.getElementById('repPost').textContent = `${r.postureScore}/100`;
+                document.getElementById('repShw').textContent = r.shoulderWidth;
+            } else {
+                noReportMsg.style.display = 'block';
+                summaryBox.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR Gyms — Strength & Lifestyle Studio</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe for AI Posture Analysis -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+
+    <!-- GSAP & Lenis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.39/dist/lenis.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-light: #0f0f0f;
+            --bg-grey: #1a1a1a;
+            --border-color: rgba(255, 255, 255, 0.5);
+            --border-color-hover: rgba(255, 255, 255, 0.75);
+            --text-main: #ffffff;
+            --text-muted: #e0e0e0;
+            --light-grey: #f8f8f8;
+            --accent: #ffffff;
+            --accent-dim: rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(255, 255, 255, 0.28);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-strong: rgba(255, 255, 255, 0.18);
+            --hero-highlight: rgba(255, 255, 255, 0.06);
+            --font-heading: 'Inter', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+            --transition: cubic-bezier(0.76, 0, 0.24, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, #16161a 0%, var(--bg-dark) 70%);
+        }
+
+        body {
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Hide scrollbar for smooth scroll feel */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* --- LOADER --- */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(160deg, #080808 0%, #121212 50%, #1c1c1e 100%);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .loader-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            opacity: 0;
+            transform: scale(0.88);
+        }
+
+        .loader-logo {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .loader-bar-wrap {
+            width: min(80vw, 400px);
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loader-bar {
+            height: 100%;
+            width: 0%;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 0;
+            z-index: 1000;
+            background: rgba(8, 8, 8, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 0;
+            width: 100%;
+        }
+
+        .nav-logo {
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+        }
+
+        .nav-logo em {
+            font-style: normal;
+            color: var(--text-muted);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.6;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .glass-btn {
+            text-decoration: none;
+            padding: 0.75rem 1.6rem;
+            border-radius: 50px;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            background: var(--glass);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 14px 40px rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glass-btn:hover {
+            background: var(--glass-strong);
+            border-color: rgba(255, 255, 255, 0.55);
+            transform: translateY(-2px);
+            box-shadow: 0 18px 55px rgba(255, 255, 255, 0.12);
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            z-index: 1100;
+            flex-shrink: 0;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.4s ease, width 0.4s ease;
+        }
+
+        .hamburger.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.is-open span:nth-child(2) { opacity: 0; width: 0; }
+        .hamburger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        /* Mobile Nav Drawer */
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(340px, 85vw);
+            height: 100vh;
+            background: rgba(8, 8, 8, 0.98);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5rem 3rem 4rem;
+            transform: translateX(100%);
+            transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        .mobile-nav.is-open { transform: translateX(0); }
+
+        .mobile-nav-close {
+            position: absolute;
+            top: 1.4rem;
+            right: 1.5rem;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 2.5rem;
+        }
+
+        .mobile-nav-link {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-transform: uppercase;
+            transition: color 0.3s ease, padding-left 0.3s ease;
+            display: block;
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        .mobile-nav.is-open .mobile-nav-link {
+            opacity: 1;
+            transform: translateX(0);
+            transition: color 0.3s, padding-left 0.3s, opacity 0.4s, transform 0.4s;
+        }
+
+        .mobile-nav.is-open .mobile-nav-link:nth-child(1) { transition-delay: 0.05s; }
+        .mobile-nav.is-open .mobile-nav-link:nth-child(2) { transition-delay: 0.10s; }
+        .mobile-nav.is-open .mobile-nav-link:nth-child(3) { transition-delay: 0.15s; }
+        .mobile-nav.is-open .mobile-nav-link:nth-child(4) { transition-delay: 0.20s; }
+        .mobile-nav.is-open .mobile-nav-link:nth-child(5) { transition-delay: 0.25s; }
+        .mobile-nav.is-open .mobile-nav-link:nth-child(6) { transition-delay: 0.30s; }
+
+        .mobile-nav-link:hover { color: #ffffff; padding-left: 0.5rem; }
+        .mobile-nav-link:last-child { border-bottom: none; }
+
+        .mobile-nav-cta {
+            display: inline-block;
+            text-decoration: none;
+            padding: 0.9rem 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #ffffff;
+            text-transform: uppercase;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: background 0.3s, opacity 0.4s 0.35s, transform 0.4s 0.35s;
+        }
+
+        .mobile-nav.is-open .mobile-nav-cta { opacity: 1; transform: translateY(0); }
+        .mobile-nav-cta:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
+
+        .mobile-nav-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .mobile-nav-overlay.is-open { opacity: 1; pointer-events: all; }
+
+        /* Timer/Clock overlay */
+        .timer-section {
+            position: absolute;
+            top: 85px;
+            left: 0;
+            width: 100%;
+            padding: 10px 0;
+            background: transparent;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .timer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .live-clock {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: #ffffff;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+        }
+
+        .timer-quote {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* Hero */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 140%;
+            background-image: url('sr_gyms_hero.png');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+            opacity: 0.92;
+            filter: grayscale(70%) contrast(1.08) brightness(0.82);
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, rgba(5,5,5,0.88) 100%);
+            z-index: -1;
+        }
+
+        .hero-content {
+            text-align: center;
+            margin-top: 6rem;
+            padding: 0 1rem;
+            text-shadow: 0 0 20px rgba(255,255,255,0.08);
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2.5rem, 6.5vw, 6rem);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: 0.08em;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+
+        .hero-subtitle {
+            margin-top: 1.5rem;
+            font-size: clamp(0.95rem, 2vw, 1.25rem);
+            color: var(--light-grey);
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 0 0 18px rgba(255,255,255,0.06);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        .scroll-indicator .line {
+            width: 1px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.3);
+            transform-origin: top;
+        }
+
+        /* About / Ethos */
+        .about {
+            padding: 10rem 0;
+            background-color: var(--bg-dark);
+            position: relative;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-text {
+            font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+            line-height: 1.45;
+            font-weight: 300;
+            color: var(--light-grey);
+            letter-spacing: 0.01em;
+            margin-bottom: 2.5rem;
+        }
+
+        .about-img-frame {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            aspect-ratio: 1.2/1;
+            border: 1px solid var(--border-color);
+        }
+
+        .about-img-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.15) brightness(0.7);
+            transition: transform 0.8s ease;
+        }
+
+        .about-img-frame:hover img {
+            transform: scale(1.04);
+        }
+
+        /* Services slider */
+        .services {
+            padding: 8rem 0;
+            background-color: var(--bg-light);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .gallery-wrapper {
+            position: relative;
+            width: 100%;
+            margin-top: 3rem;
+        }
+
+        .services-gallery {
+            display: flex;
+            overflow-x: auto;
+            gap: 1.5rem;
+            padding: 1rem 0 2rem;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+
+        .services-gallery::-webkit-scrollbar { display: none; }
+
+        .gallery-nav {
+            position: absolute;
+            top: 40%;
+            transform: translateY(-50%);
+            width: 54px;
+            height: 54px;
+            background: #ffffff;
+            color: #000000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            border: none;
+        }
+
+        .gallery-nav:hover {
+            background: #e0e0e0;
+            transform: translateY(-50%) scale(1.08);
+        }
+
+        .prev-btn { left: -25px; }
+        .next-btn { right: -25px; }
+
+        .service-gallery-card {
+            flex: 0 0 calc(33.33% - 1rem);
+            scroll-snap-align: start;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.4s, transform 0.4s, box-shadow 0.4s;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.18);
+            backdrop-filter: blur(10px);
+        }
+
+        .service-gallery-card:hover {
+            border-color: rgba(255,255,255,0.45);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+        }
+
+        .card-image {
+            width: 100%;
+            aspect-ratio: 1.4/1;
+            overflow: hidden;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-image span {
+            font-size: 3rem;
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .card-content h3 {
+            font-size: 1.15rem;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            margin-bottom: 0.6rem;
+        }
+
+        .card-content p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Quote Engine Card */
+        #quotes-section {
+            padding: 8rem 0;
+            background: var(--bg-dark);
+            text-align: center;
+        }
+
+        .quote-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.22);
+            padding: 5rem 3rem;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 4px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.28);
+            transition: all 0.4s ease;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .quote-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ffffff;
+            opacity: 0.18;
+        }
+
+        .quote-icon {
+            font-family: var(--font-heading);
+            font-size: 6rem;
+            line-height: 0;
+            color: #ffffff;
+            opacity: 0.05;
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            user-select: none;
+        }
+
+        .quote-text {
+            font-family: var(--font-heading);
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            line-height: 1.35;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.35s, transform 0.35s;
+            color: #ffffff;
+        }
+
+        .quote-author {
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+            transition: opacity 0.35s;
+        }
+
+        .quote-btn {
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 0.8rem 2rem;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .quote-btn:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            box-shadow: 0 18px 40px rgba(255,255,255,0.2);
+        }
+
+        .quote-card.animating .quote-text { opacity: 0; transform: translateY(-10px); }
+        .quote-card.animating .quote-author { opacity: 0; }
+
+        /* Memberships Grid */
+        .memberships {
+            padding: 8rem 0;
+            background-color: var(--bg-light);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .pricing-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255,255,255,0.16);
+            padding: 3rem 2rem;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+            cursor: pointer;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.16);
+            backdrop-filter: blur(8px);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255,255,255,0.45);
+        }
+
+        .pricing-card h3 {
+            font-size: 1.2rem;
+            color: var(--light-grey);
+            margin-bottom: 1.8rem;
+            letter-spacing: 0.08em;
+        }
+
+        .pricing-card .price {
+            font-family: var(--font-heading);
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .membership-includes {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            padding: 2rem;
+            background: var(--bg-grey);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .membership-includes h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            letter-spacing: 0.1em;
+        }
+
+        .membership-includes p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .registration-fee {
+            text-align: center;
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            letter-spacing: 0.05em;
+        }
+
+        .registration-fee .terms {
+            font-family: var(--font-body);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        /* Elite Coaching List */
+        .elite-coaching {
+            padding: 8rem 0;
+            background-color: var(--bg-dark);
+        }
+
+        .elite-coaching-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .elite-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .elite-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .elite-subtitle {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        .elite-list {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem 2rem;
+        }
+
+        .elite-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.3rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .elite-item:hover {
+            padding-left: 0.8rem;
+            padding-right: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .elite-item:last-child { border-bottom: none; }
+
+        .elite-name {
+            font-size: 1.05rem;
+            color: var(--light-grey);
+        }
+
+        .elite-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* Specialty Grid */
+        .specialty-training {
+            padding: 8rem 0;
+            background-color: var(--bg-light);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Parallax Recovery Sections */
+        .steam-recovery, .rehab-section, .diet-section {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .steam-bg, .rehab-bg, .diet-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            will-change: transform;
+            filter: grayscale(100%) contrast(1.1) brightness(0.5);
+        }
+
+        .steam-overlay, .rehab-overlay, .diet-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 100%);
+            z-index: 1;
+        }
+
+        .steam-container, .rehab-container, .diet-container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 0 1.5rem;
+        }
+
+        .steam-title, .rehab-title, .diet-title {
+            font-size: clamp(2.2rem, 6vw, 4.5rem);
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.8rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .steam-subtitle, .rehab-subtitle, .diet-subtitle {
+            font-size: 1rem;
+            letter-spacing: 0.25em;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .steam-text, .rehab-text, .diet-text {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--light-grey);
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .section-spacer {
+            height: 10rem;
+            background: transparent;
+        }
+
+        /* --- AI FITNESS SCANNER --- */
+        #ai-analysis {
+            padding: 8rem 0;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .ai-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .upload-area {
+            border: 1px dashed var(--border-color);
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            background: var(--bg-light);
+        }
+
+        .upload-area:hover {
+            border-color: var(--border-color-hover);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .upload-area input[type=file] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon { font-size: 2.5rem; margin-bottom: 1rem; filter: grayscale(100%); }
+        .upload-title { font-size: 1.1rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+        .upload-sub { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+        #preview-wrap {
+            position: relative;
+            display: none;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        #preview-img { width: 100%; max-height: 500px; object-fit: contain; background: #000; display: block; }
+        #analysis-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+        .ai-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .af { display: flex; flex-direction: column; gap: 0.5rem; }
+        .af label { font-family: var(--font-heading); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; }
+        
+        .af input, .af select {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            padding: 0.8rem 1rem;
+            outline: none;
+            transition: all 0.3s;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .af input:focus, .af select:focus { border-color: var(--border-color-hover); }
+        .af select option { background: #111; }
+
+        .analyze-btn {
+            width: 100%;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.12em;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .analyze-btn:hover { background: #e0e0e0; transform: translateY(-2px); }
+        .analyze-btn:disabled { background: var(--bg-grey); color: var(--text-muted); cursor: not-allowed; transform: none; }
+
+        .scan-pulse {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .report-placeholder {
+            padding: 5rem 2rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            min-height: 400px;
+            background: var(--bg-light);
+        }
+
+        .report-placeholder .ph-icon { font-size: 3rem; opacity: 0.2; }
+        .report-placeholder p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; max-width: 300px; }
+
+        #report-output { display: none; }
+
+        .report-header {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 2.2rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-logo { font-family: var(--font-heading); font-weight: 800; font-size: 1.1rem; letter-spacing: 0.08em; }
+        .report-date { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase; }
+        .report-client-name { font-family: var(--font-heading); font-weight: 800; font-size: 1.8rem; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+        .report-subtitle { font-size: 0.82rem; color: var(--text-muted); }
+        .report-score-ring { display: flex; align-items: center; gap: 1.5rem; margin-top: 1.5rem; }
+        
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(#ffffff var(--pct,0%), rgba(255,255,255,0.06) var(--pct,0%));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-circle::before { content:''; position:absolute; inset:6px; background:var(--bg-light); border-radius:50%; }
+        .score-value { font-family: var(--font-heading); font-weight: 800; font-size: 1.4rem; color: #ffffff; position: relative; z-index: 1; }
+        
+        .score-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .score-sub { font-size: 0.78rem; color: var(--text-muted); }
+
+        .report-section { margin-bottom: 1.5rem; }
+        
+        .rs-title {
+            font-family: var(--font-heading);
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rs-title::before { content:''; width:12px; height:1px; background:#ffffff; }
+
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+        
+        .metric-chip {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 2px solid transparent;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-chip:hover { border-left-color: #ffffff; }
+        
+        .metric-name { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.2rem; text-transform: uppercase; }
+        .metric-val { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; }
+        .metric-val .unit { font-size: 0.7rem; color: var(--text-muted); margin-left: 2px; }
+        
+        .metric-val .badge {
+            font-size: 0.58rem;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-left: 4px;
+            font-weight: 700;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .posture-meter { display: flex; align-items: center; gap: 1.2rem; background: var(--bg-light); padding: 1rem; border-radius: 4px; border: 1px solid var(--border-color); margin-bottom: 0.6rem; }
+        .posture-icon { font-size: 1.5rem; filter: grayscale(100%); }
+        .posture-info { flex: 1; }
+        .posture-name { font-size: 0.72rem; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; }
+        .posture-bar-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+        .posture-bar-fill { height: 100%; background: #ffffff; transition: width 1s; }
+        .posture-score { font-family: var(--font-heading); font-weight: 700; font-size: 1.1rem; }
+
+        .body-type-badge { display: flex; align-items: center; gap: 1rem; background: var(--bg-light); border: 1px solid var(--border-color); padding: 1.2rem; border-radius: 4px; margin-bottom: 0.8rem; }
+        .bt-icon { font-size: 1.8rem; filter: grayscale(100%); }
+        .bt-text h4 { font-size: 0.95rem; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+        .bt-text p { font-size: 0.78rem; color: var(--text-muted); }
+
+        .recommendation-list { list-style: none; }
+        .recommendation-list li { font-size: 0.88rem; line-height: 1.6; color: var(--light-grey); padding: 0.6rem 0; border-bottom: 1px solid var(--border-color); display: flex; gap: 8px; }
+        .recommendation-list li::before { content:'→'; color:#ffffff; opacity: 0.5; }
+
+        .report-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        
+        .btn-download {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            padding: 0.8rem 1.4rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-dl-primary { background: #ffffff; color: #000; border: none; }
+        .btn-dl-primary:hover { background: #e0e0e0; }
+        .btn-dl-outline { background: transparent; color: #fff; border: 1px solid var(--border-color); }
+        .btn-dl-outline:hover { border-color: var(--border-color-hover); background: rgba(255,255,255,0.02); }
+
+        /* Testimonials */
+        #transformations {
+            padding: 8rem 0;
+            background: var(--bg-dark);
+        }
+
+        .trans-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 4rem;
+        }
+
+        .slider-nav { display: flex; gap: 0.8rem; }
+        .snav {
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .snav:hover {
+            border-color: #ffffff;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .slider-viewport { overflow: hidden; }
+        .slider-track { display: flex; gap: 1.5rem; transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        .t-card {
+            flex: 0 0 calc(33.33% - 1rem);
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .t-card-img { aspect-ratio: 1.1/1; overflow: hidden; position: relative; background: #111; }
+        .t-card-img-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .t-card-img-inner span { filter: grayscale(100%); opacity: 0.4; }
+        .t-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 60%); display: flex; align-items: flex-end; padding: 2rem; }
+        .t-name { font-family: var(--font-heading); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+        .t-meta { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+        .t-pill { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; }
+
+        /* Footer */
+        .footer {
+            padding: 8rem 0 4rem;
+            background-color: #050505;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4rem;
+            margin-bottom: 6rem;
+        }
+
+        .query-form { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; }
+        .query-form input, .query-form textarea {
+            width: 100%;
+            padding: 0.9rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: #ffffff;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .query-form textarea { height: 90px; resize: none; }
+        .query-form input:focus, .query-form textarea:focus { outline: none; background: rgba(255, 255, 255, 0.05); border-color: var(--border-color-hover); }
+
+        .contact-label {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-value { font-size: 1.1rem; font-weight: 600; line-height: 1.5; }
+        .contact-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem; }
+        .contact-link { display: block; font-size: 1.1rem; font-weight: 600; color: #ffffff; text-decoration: none; transition: all 0.3s; }
+        .contact-link:hover { color: var(--text-muted); transform: translateX(4px); }
+        .social-link { display: flex; align-items: center; gap: 0.4rem; }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo-text {
+            font-family: var(--font-heading);
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            opacity: 0.04;
+            line-height: 1;
+        }
+
+        .footer-bottom p { font-size: 0.78rem; color: var(--text-muted); letter-spacing: 0.08em; }
+
+        /* PORTALS STRIP */
+        .portal-strip {
+            background: var(--bg-grey);
+            padding: 1.8rem 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .portal-strip p { font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+        .portal-btns { display: flex; gap: 1rem; }
+        
+        .portal-btn {
+            font-family: var(--font-heading);
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.7rem 1.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid var(--border-color);
+        }
+
+        .portal-btn:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        /* --- PORTAL LOGIN MODAL --- */
+        .portal-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .portal-modal-overlay.open { opacity: 1; visibility: visible; }
+        
+        .portal-modal {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 3.5rem;
+            max-width: 480px;
+            width: 90%;
+            position: relative;
+            border-radius: 4px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.5);
+        }
+
+        .portal-modal-close {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .portal-modal-close:hover { color: #fff; }
+
+        .portal-modal h3 { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 0.5rem; text-align: center; }
+        .portal-modal-sub { font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 2rem; }
+
+        .portal-form { display: flex; flex-direction: column; gap: 1rem; }
+        .portal-form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .portal-form-group label { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; }
+        
+        .portal-form input {
+            background: var(--bg-grey);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            padding: 0.8rem 1rem;
+            outline: none;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .portal-form input:focus { border-color: var(--border-color-hover); }
+
+        .portal-submit-btn {
+            width: 100%;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            background: #ffffff;
+            color: #000;
+            border: none;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+            margin-top: 1rem;
+            text-transform: uppercase;
+        }
+
+        .portal-submit-btn:hover { background: #e0e0e0; }
+
+        .portal-switch-link {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+        }
+
+        .portal-switch-link a { color: #fff; text-decoration: underline; cursor: pointer; }
+
+        /* General Utilities for GSAP animation */
+        .reveal-text, .reveal-up, .pricing-card-reveal { opacity: 0; }
+
+        /* Responsive styling */
+        @media (max-width: 1024px) {
+            .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+            .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .ai-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .t-card { flex: 0 0 calc(50% - 0.75rem); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .t-card { flex: 0 0 85vw; }
+            .footer-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .footer-bottom { flex-direction: column; text-align: center; gap: 2rem; }
+            .nav-logo { font-size: 1.7rem; }
+            .timer-section { top: 75px; }
+            .steam-recovery, .rehab-section, .diet-section { height: 75vh; }
+            .section-title { font-size: 1.8rem; }
+            .about { padding: 6rem 0; }
+            .services-gallery { gap: 1rem; }
+            .service-gallery-card { flex: 0 0 80vw; }
+            .prev-btn { left: 5px; }
+            .next-btn { right: 5px; }
+            .portal-strip { flex-direction: column; gap: 1.5rem; text-align: center; }
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loader Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-inner">
+            <div class="loader-logo">SR GYMS</div>
+            <div class="loader-bar-wrap">
+                <div class="loader-bar" id="loaderBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <div class="nav-logo">SR<em>.</em>GYMS</div>
+            <div class="nav-links">
+                <a href="#home">HOME</a>
+                <a href="#about">ABOUT</a>
+                <a href="#services">SERVICES</a>
+                <a href="#pricing">PRICING</a>
+                <a href="#ai-analysis">AI PROFILER</a>
+                <a href="#contact">CONTACT</a>
+            </div>
+            <div class="nav-actions">
+                <a href="#contact" class="glass-btn sticky-call desktop-only">BOOK DAY PASS</a>
+                <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav Drawer -->
+    <div class="mobile-nav" id="mobileNav">
+        <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">&#10005;</button>
+        <nav class="mobile-nav-links">
+            <a href="#home" class="mobile-nav-link" onclick="closeMobileNav()">HOME</a>
+            <a href="#about" class="mobile-nav-link" onclick="closeMobileNav()">ABOUT</a>
+            <a href="#services" class="mobile-nav-link" onclick="closeMobileNav()">SERVICES</a>
+            <a href="#pricing" class="mobile-nav-link" onclick="closeMobileNav()">PRICING</a>
+            <a href="#ai-analysis" class="mobile-nav-link" onclick="closeMobileNav()">AI PROFILER</a>
+            <a href="#contact" class="mobile-nav-link" onclick="closeMobileNav()">CONTACT</a>
+        </nav>
+        <a href="#contact" onclick="closeMobileNav()" class="mobile-nav-cta">BOOK DAY PASS</a>
+    </div>
+    <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="closeMobileNav()"></div>
+
+    <!-- Live Timer overlay -->
+    <section class="timer-section" id="liveTimer">
+        <div class="timer-container reveal-up">
+            <div id="liveClock" class="live-clock">00:00:<span id="clockSeconds">00</span></div>
+            <p class="timer-quote">Every second counts. Start your fitness journey now.</p>
+        </div>
+    </section>
+
+    <!-- Main Content wrapper for Lenis smooth scroll -->
+    <main id="smooth-wrapper">
+        <div id="smooth-content">
+
+            <!-- Hero Section -->
+            <section class="hero" id="home">
+                <div class="hero-bg"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title reveal-text">STRENGTH &</h1>
+                    <h1 class="hero-title reveal-text">LIFESTYLE STUDIO</h1>
+                    <p class="hero-subtitle reveal-text delay-1">Unleash your ultimate potential in an elite, high-performance environment.</p>
+                </div>
+                <div class="scroll-indicator">
+                    <span>SCROLL</span>
+                    <div class="line"></div>
+                </div>
+            </section>
+
+            <!-- Motivational Quotes Card Section -->
+            <section id="quotes-section">
+                <div class="container">
+                    <div class="quote-card reveal-up">
+                        <div class="quote-icon">“</div>
+                        <p id="quote-text" class="quote-text">Your body can stand almost anything. It's your mind that you have to convince.</p>
+                        <p id="quote-author" class="quote-author">— Unknown</p>
+                        <button class="quote-btn" onclick="generateNewQuote()">
+                            <span>GET MOTIVATION </span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recovery Section Parallaxes -->
+            <section class="steam-recovery" id="recovery">
+                <img src="sr_steam_bath.png" alt="Steam Bath" class="steam-bg">
+                <div class="steam-overlay"></div>
+                <div class="container steam-container">
+                    <div class="steam-content">
+                        <h2 class="steam-title">RECOVER & RECHARGE</h2>
+                        <h3 class="steam-subtitle">EXCLUSIVE STEAM BATH SERVICES</h3>
+                        <p class="steam-text">Deep heat muscle relaxation and full detoxification. Our steam bath sessions are designed to kickstart recovery after high-intensity training cycles.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-spacer"></div>
+
+            <!-- Services Section -->
+            <section class="services" id="services">
+                <div class="container">
+                    <h2 class="section-title reveal-up">OUR CORE SERVICES</h2>
+                    
+                    <div class="gallery-wrapper">
+                        <button class="gallery-nav prev-btn" id="galleryPrev">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        
+                        <div class="services-gallery reveal-up">
+                            <!-- Slide 1 -->
+                            <div class="service-gallery-card">
+                                <div class="card-image">
+                                    <span>🏋️</span>
+                                </div>
+                                <div class="card-content">
+                                    <h3>PERSONAL TRAINING</h3>
+                                    <p>1-ON-1 ELITE COACHING</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Slide 2 -->
+                            <div class="service-gallery-card">
+                                <div class="card-image">
+                                    <span>🦾</span>
+                                </div>
+                                <div class="card-content">
+                                    <h3>STRENGTH CONDITIONING</h3>
+                                    <p>PROGRESSIVE IRON PROTOCOLS</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Slide 3 -->
+                            <div class="service-gallery-card">
+                                <div class="card-image">
+                                    <span>🔥</span>
+                                </div>
+                                <div class="card-content">
+                                    <h3>TRANSFORMATION PROGRAM</h3>
+                                    <p>INTENSIVE 90-DAY FORMULAS</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="gallery-nav next-btn" id="galleryNext">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rehab Protocols Section -->
+            <section class="rehab-section" id="rehab">
+                <img src="sr_rehab.png" alt="Rehab Workout" class="rehab-bg">
+                <div class="rehab-overlay"></div>
+                <div class="container rehab-container">
+                    <div class="rehab-content">
+                        <h2 class="rehab-title">REHAB PROTOCOLS</h2>
+                        <h3 class="rehab-subtitle">RESTORE. REBUILD. EXCEL.</h3>
+                        <p class="rehab-text">Focused rehabilitation routines to restore joint mobility, activate stabilizer systems, and return from injury stronger than before.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Memberships Pricing Rate Card -->
+            <section class="memberships" id="pricing">
+                <div class="container">
+                    <h2 class="section-title reveal-up">MEMBERSHIPS</h2>
+                    <div class="pricing-grid">
+                        
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>1 MONTH</h3>
+                            <div class="price">3000/-</div>
+                            <p>SINGLE DURATION ACCESS</p>
+                        </div>
+                        
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>3 MONTHS</h3>
+                            <div class="price">7000/-</div>
+                            <p>QUARTERLY PROGRESSIVE Access</p>
+                        </div>
+                        
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>6 MONTHS</h3>
+                            <div class="price">10000/-</div>
+                            <p>SEMI-ANNUAL COMMITMENT</p>
+                        </div>
+                        
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>12 MONTHS</h3>
+                            <div class="price">12000/-</div>
+                            <p>ANNUAL LIFESTYLE UPGRADE</p>
+                        </div>
+                    </div>
+                    
+                    <div class="membership-includes reveal-up">
+                        <h4>MEMBERSHIP INCLUDES</h4>
+                        <p>General Trainer Orientation | Dynamic Fitness Test | Functional Group Classes | Personalized Workout Chart | Premium Steam Bath Access | Temporary Lockers</p>
+                    </div>
+                    <div class="registration-fee reveal-up">
+                        <p>REGISTRATION FEE ₹ 600/-</p>
+                        <p class="terms">*T & C Apply. Government Taxes as Applicable. Please insist on a bill for any Transaction.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diet Consultation Section -->
+            <section class="diet-section" id="diet">
+                <img src="sr_diet.png" alt="Diet Consultation" class="diet-bg">
+                <div class="diet-overlay"></div>
+                <div class="container diet-container">
+                    <div class="diet-content">
+                        <h2 class="diet-title">DIET CONSULTATION</h2>
+                        <h3 class="diet-subtitle">NUTRITION. THERMAL METABOLISM.</h3>
+                        <p class="diet-text">Customized nutritional plans designed to fuel performance, align with macro splits, and achieve sustainable structural change.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Specialty Online & Home Training -->
+            <section class="specialty-training">
+                <div class="container">
+                    <h2 class="section-title reveal-up">ONLINE & HOME SERVICES</h2>
+                    <div class="pricing-grid">
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>ONLINE PT</h3>
+                            <div class="price">6000/-</div>
+                            <p>12 SESSIONS • 30 DAYS</p>
+                        </div>
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>ONLINE PT</h3>
+                            <div class="price">12000/-</div>
+                            <p>24 SESSIONS • 30 DAYS</p>
+                        </div>
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>HOME VISIT</h3>
+                            <div class="price">8000/-</div>
+                            <p>12 SESSIONS • 30 DAYS</p>
+                        </div>
+                        <div class="pricing-card pricing-card-reveal">
+                            <h3>HOME VISIT</h3>
+                            <div class="price">16000/-</div>
+                            <p>24 SESSIONS • 30 DAYS</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MediaPipe AI Posture Profiler -->
+            <section id="ai-analysis">
+                <div class="container">
+                    <h2 class="section-title reveal-up">SR AI FITNESS PROFILER</h2>
+                    <p class="reveal-up" style="font-size: 1rem; color: var(--text-muted); text-align: center; max-width: 600px; margin: -2rem auto 4rem; line-height: 1.6;">
+                        Upload a front-facing full-body photo and provide your measurements. Our MediaPipe computer vision scanner will map your posture, proportion metrics, and generate an instant analysis report.
+                    </p>
+                    <div class="ai-grid">
+                        <div class="ai-left reveal-up">
+                            <div class="upload-area" id="upload-area">
+                                <input type="file" accept="image/*" id="photo-input" onchange="loadPhoto(this)">
+                                <div class="upload-icon">📷</div>
+                                <div class="upload-title">Upload Full-Body Photo</div>
+                                <div class="upload-sub">Stand straight · Front visible · Clear lighting</div>
+                            </div>
+                            <div id="preview-wrap">
+                                <img id="preview-img" src="" alt="Preview">
+                                <canvas id="analysis-canvas"></canvas>
+                            </div>
+                            <div class="ai-form-grid">
+                                <div class="af"><label>Full Name</label><input type="text" id="ai-name" placeholder="Arjun Kumar"></div>
+                                <div class="af"><label>Age</label><input type="number" id="ai-age" placeholder="25" min="14" max="80"></div>
+                                <div class="af"><label>Weight (kg)</label><input type="number" id="ai-weight" placeholder="75" min="30" max="200"></div>
+                                <div class="af"><label>Height (cm)</label><input type="number" id="ai-height" placeholder="175" min="120" max="220"></div>
+                                <div class="af"><label>Gender</label>
+                                    <select id="ai-gender"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select>
+                                </div>
+                                <div class="af"><label>Activity</label>
+                                    <select id="ai-activity">
+                                        <option value="">Select</option>
+                                        <option value="sedentary">Sedentary</option>
+                                        <option value="light">Lightly Active</option>
+                                        <option value="moderate">Moderately Active</option>
+                                        <option value="active">Very Active</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="af" style="margin-bottom: 1.5rem;"><label>Email (for report delivery)</label><input type="email" id="ai-email" placeholder="email@address.com"></div>
+                            <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">
+                                <span id="btn-text">🔬 START SCANNING</span>
+                                <div class="scan-pulse" id="scan-pulse"></div>
+                            </button>
+                        </div>
+                        <div class="ai-right reveal-up">
+                            <div class="report-placeholder" id="report-placeholder">
+                                <div class="ph-icon">🔬</div>
+                                <p>Fill in details and upload a photo, then click scan to generate your structural fitness report.</p>
+                            </div>
+                            <div id="report-output"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Testimonials Slider Section -->
+            <section id="transformations">
+                <div class="container">
+                    <div class="trans-top">
+                        <div class="reveal-up">
+                            <h2 class="section-title" style="text-align: left; margin-bottom: 0;">MEMBER SCULPTS</h2>
+                        </div>
+                        <div class="slider-nav reveal-up">
+                            <button class="snav" id="btn-prev">&#8592;</button>
+                            <button class="snav" id="btn-next">&#8594;</button>
+                        </div>
+                    </div>
+                    <div class="slider-viewport">
+                        <div class="slider-track" id="sliderTrack">
+                            <div class="t-card reveal-up">
+                                <div class="t-card-img"><div class="t-card-img-inner"><span>💪</span></div></div>
+                                <div class="t-overlay">
+                                    <div>
+                                        <div class="t-name">Arjun S.</div>
+                                        <div class="t-meta">Lost 18 kg · 5 months · Age 24</div>
+                                        <span class="t-pill">Fat Loss</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="t-card reveal-up">
+                                <div class="t-card-img"><div class="t-card-img-inner"><span>🏋️</span></div></div>
+                                <div class="t-overlay">
+                                    <div>
+                                        <div class="t-name">Priya R.</div>
+                                        <div class="t-meta">Gained 8 kg muscle · Age 28</div>
+                                        <span class="t-pill">Muscle Gain</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="t-card reveal-up">
+                                <div class="t-card-img"><div class="t-card-img-inner"><span>🔥</span></div></div>
+                                <div class="t-overlay">
+                                    <div>
+                                        <div class="t-name">Karthik M.</div>
+                                        <div class="t-meta">Complete Recomp · Age 32</div>
+                                        <span class="t-pill">Recomp</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Client & Admin Portals Links -->
+            <div class="portal-strip">
+                <p>🔑 Access Client & Trainer Portals</p>
+                <div class="portal-btns">
+                    <button class="portal-btn" onclick="openPortalModal('client')">📱 Client Portal</button>
+                    <button class="portal-btn" onclick="openPortalModal('admin')">⚙️ Admin Dashboard</button>
+                </div>
+            </div>
+
+            <!-- Footer / Contact Section -->
+            <footer class="footer" id="contact">
+                <div class="container footer-container">
+                    <div class="footer-grid">
+                        
+                        <!-- Column 1: Info & Queries -->
+                        <div class="footer-col reveal-up">
+                            <div class="contact-item" style="margin-bottom: 3rem;">
+                                <h4 class="contact-label">BOOK DAY PASS / QUERY</h4>
+                                <form id="queryForm" class="query-form">
+                                    <input type="text" id="queryName" placeholder="NAME" required>
+                                    <input type="tel" id="queryNumber" placeholder="MOBILE NUMBER" required>
+                                    <textarea id="queryMessage" placeholder="HOW CAN WE HELP YOU?" required></textarea>
+                                    <button type="submit" class="glass-btn query-submit">SEND DETAILS</button>
+                                </form>
+                            </div>
+                            <div class="contact-item">
+                                <h4 class="contact-label">OPERATING HOURS</h4>
+                                <p class="contact-value">05:00 AM – 10:00 PM</p>
+                                <p class="contact-sub">Open 365 Days</p>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Location & Contact -->
+                        <div class="footer-col reveal-up">
+                            <div class="contact-item" style="margin-bottom: 3rem;">
+                                <h4 class="contact-label">STUDIO LOCATION</h4>
+                                <p class="contact-value">Plot No. 12, Gandhi Nagar Main Road, Adyar, Chennai - 600020</p>
+                            </div>
+                            <div class="contact-item">
+                                <h4 class="contact-label">EMAIL ADDRESS</h4>
+                                <a href="mailto:info@srgyms.com" class="contact-link">info@srgyms.com</a>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Social & Chat -->
+                        <div class="footer-col reveal-up">
+                            <div class="contact-item" style="margin-bottom: 3rem;">
+                                <h4 class="contact-label">CHAT WITH US</h4>
+                                <a href="https://wa.me/917358821196" target="_blank" class="contact-link social-link">
+                                    WhatsApp Messenger
+                                </a>
+                            </div>
+                            <div class="contact-item">
+                                <h4 class="contact-label">FOLLOW</h3>
+                                <a href="#" class="contact-link">Instagram</a>
+                                <a href="#" class="contact-link" style="margin-top: 0.5rem;">YouTube</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <div class="footer-logo-text">SR GYMS</div>
+                        <p>© 2026 SR GYMS. ALL RIGHTS RESERVED.</p>
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+    </main>
+
+    <!-- Portal Login Modal -->
+    <div class="portal-modal-overlay" id="portalModal">
+        <div class="portal-modal">
+            <button class="portal-modal-close" onclick="closePortalModal()">✕</button>
+            <h3 id="portalTitle">CLIENT PORTAL</h3>
+            <p class="portal-modal-sub" id="portalSub">Sign in to track your workouts and view AI report</p>
+            <form id="portalLoginForm" class="portal-form" onsubmit="handlePortalLogin(event)">
+                <div class="portal-form-group">
+                    <label id="userLabel">EMAIL ADDRESS</label>
+                    <input type="text" id="portalUser" placeholder="name@email.com" required>
+                </div>
+                <div class="portal-form-group">
+                    <label>PASSWORD</label>
+                    <input type="password" id="portalPass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="portal-submit-btn" id="portalSubmitText">SIGN IN</button>
+            </form>
+            <div class="portal-switch-link" id="portalSwitch">
+                Don't have an account? <a onclick="togglePortalMode()">Register here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script logic -->
+    <script>
+        // Hamburger Drawer
+        (function() {
+            var hamburgerBtn = document.getElementById('hamburgerBtn');
+            var mobileNav    = document.getElementById('mobileNav');
+            var mobileNavClose   = document.getElementById('mobileNavClose');
+            var mobileNavOverlay = document.getElementById('mobileNavOverlay');
+
+            if (!hamburgerBtn) return;
+
+            function openMenu() {
+                hamburgerBtn.classList.add('is-open');
+                mobileNav.classList.add('is-open');
+                mobileNavOverlay.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                hamburgerBtn.classList.remove('is-open');
+                mobileNav.classList.remove('is-open');
+                mobileNavOverlay.classList.remove('is-open');
+                document.body.style.overflow = '';
+            }
+
+            window.closeMobileNav = closeMenu;
+
+            hamburgerBtn.addEventListener('click', function() {
+                if (hamburgerBtn.classList.contains('is-open')) closeMenu();
+                else openMenu();
+            });
+
+            if (mobileNavClose)   mobileNavClose.addEventListener('click', closeMenu);
+            if (mobileNavOverlay) mobileNavOverlay.addEventListener('click', closeMenu);
+        })();
+
+        // Live Clock
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const clockElement = document.getElementById("liveClock");
+            const secondsElement = document.getElementById("clockSeconds");
+            
+            if (clockElement && secondsElement) {
+                clockElement.childNodes[0].nodeValue = `${hours}:${minutes}:`;
+                secondsElement.innerText = seconds;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // GSAP and Scroll Reanimations
+        document.addEventListener("DOMContentLoaded", () => {
+            // Lenis scroll init
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                smooth: true
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+
+            gsap.registerPlugin(ScrollTrigger);
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+            gsap.ticker.lagSmoothing(0);
+
+            // Loader animation
+            const tl = gsap.timeline();
+            tl.to('.loader-inner', {
+                opacity: 1,
+                scale: 1,
+                duration: 0.8,
+                ease: "power3.out"
+            })
+            .to('#loaderBar', {
+                width: '100%',
+                duration: 1.2,
+                ease: "power2.inOut"
+            }, "-=0.2")
+            .to('.loader', {
+                yPercent: -100,
+                duration: 0.9,
+                ease: "power4.inOut"
+            })
+            .fromTo(".hero-title",
+                { y: 80, opacity: 0 },
+                { y: 0, opacity: 1, duration: 1, stagger: 0.12, ease: "power4.out" },
+                "-=0.4"
+            )
+            .fromTo(".hero-subtitle",
+                { y: 20, opacity: 0 },
+                { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+                "-=0.6"
+            )
+            .fromTo(".scroll-indicator", { opacity: 0 }, { opacity: 1, duration: 0.8 }, "-=0.3");
+
+            // Hero scroll line loop
+            gsap.to(".scroll-indicator .line", {
+                scaleY: 0,
+                transformOrigin: "bottom",
+                duration: 1.5,
+                repeat: -1,
+                yoyo: true,
+                ease: "power2.inOut"
+            });
+
+            // Parallax sections
+            gsap.to(".hero-bg", {
+                yPercent: 30,
+                ease: "none",
+                scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true }
+            });
+
+            // General reveal
+            document.querySelectorAll(".reveal-up").forEach((el) => {
+                gsap.fromTo(el, 
+                    { y: 40, opacity: 0 },
+                    {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.85,
+                        ease: "power3.out",
+                        scrollTrigger: { trigger: el, start: "top 88%", toggleActions: "play none none reverse" }
+                    }
+                );
+            });
+
+            // Pricing reveal
+            document.querySelectorAll(".pricing-card-reveal").forEach((card, index) => {
+                gsap.fromTo(card, 
+                    { y: 50, opacity: 0 },
+                    {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.8,
+                        ease: "power3.out",
+                        scrollTrigger: { trigger: card, start: "top 88%", toggleActions: "play none none reverse" },
+                        delay: index * 0.08
+                    }
+                );
+            });
+
+            // Recovery parallax
+            const list = [['#recovery', '.steam-bg', '.steam-content > *'], ['#rehab', '.rehab-bg', '.rehab-content > *'], ['#diet', '.diet-bg', '.diet-content > *']];
+            list.forEach(([secId, bgClass, contentClass]) => {
+                gsap.fromTo(bgClass, 
+                    { scale: 1.2, y: -40 },
+                    {
+                        scale: 1.05,
+                        y: 40,
+                        ease: "none",
+                        scrollTrigger: { trigger: secId, start: "top bottom", end: "bottom top", scrub: true }
+                    }
+                );
+                gsap.to(contentClass, {
+                    scrollTrigger: { trigger: secId, start: "top 72%", toggleActions: "play none none reverse" },
+                    opacity: 1,
+                    y: 0,
+                    duration: 1,
+                    stagger: 0.25,
+                    ease: "power3.out"
+                });
+            });
+
+            // Services Gallery Logic
+            const gallery = document.querySelector(".services-gallery");
+            const prevBtn = document.getElementById("galleryPrev");
+            const nextBtn = document.getElementById("galleryNext");
+
+            if (gallery && prevBtn && nextBtn) {
+                prevBtn.addEventListener("click", () => {
+                    gallery.scrollBy({ left: -gallery.clientWidth / 2, behavior: "smooth" });
+                });
+                nextBtn.addEventListener("click", () => {
+                    gallery.scrollBy({ left: gallery.clientWidth / 2, behavior: "smooth" });
+                });
+            }
+        });
+
+        // Quotes logic
+        const gymQuotes = [
+            { text: "The only place where success comes before work is in the dictionary.", author: "Vidal Sassoon" },
+            { text: "The clock is ticking. Are you becoming the beast, or are you staying the prey?", author: "Greg Plitt" },
+            { text: "If you want something you've never had, you must be willing to do something you've never done.", author: "Thomas Jefferson" },
+            { text: "Your body can stand almost anything. It's your mind that you have to convince.", author: "Unknown" },
+            { text: "Iron never lies to you. You can listen to all kinds of talk, but 200 pounds is always 200 pounds.", author: "Henry Rollins" },
+            { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+            { text: "Suffer the pain of discipline or suffer the pain of regret.", author: "Jim Rohn" },
+            { text: "Success isn't always about greatness. It's about consistency.", author: "Dwayne Johnson" },
+            { text: "Limits exist only in the mind.", author: "Arnold Schwarzenegger" }
+        ];
+
+        let lastQuoteIndex = -1;
+
+        function generateNewQuote() {
+            const card = document.querySelector('.quote-card');
+            card.classList.add('animating');
+            setTimeout(() => {
+                let index;
+                do {
+                    index = Math.floor(Math.random() * gymQuotes.length);
+                } while (index === lastQuoteIndex);
+                lastQuoteIndex = index;
+                const q = gymQuotes[index];
+                document.getElementById('quote-text').textContent = q.text;
+                document.getElementById('quote-author').textContent = `— ${q.author}`;
+                card.classList.remove('animating');
+            }, 350);
+        }
+
+        // WhatsApp queries
+        document.getElementById("queryForm")?.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const name = document.getElementById("queryName").value;
+            const number = document.getElementById("queryNumber").value;
+            const message = document.getElementById("queryMessage").value;
+            const text = `*New Query from SR Gyms*%0A%0A*Name:* ${name}%0A*Mobile:* ${number}%0A*Message:* ${message}`;
+            window.open(`https://wa.me/917358821196?text=${text}`, "_blank");
+            e.target.reset();
+        });
+
+        // Transformations Slider testimonial navigation
+        let curTransIndex = 0;
+        const track = document.getElementById('sliderTrack');
+        const testimonialCards = [...track.querySelectorAll('.t-card')];
+        
+        function getVisCount() { return window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 3; }
+        function getMaxIndex() { return Math.max(0, testimonialCards.length - getVisCount()); }
+        
+        function moveSlider() {
+            const cardW = testimonialCards[0].offsetWidth;
+            const gap = 24;
+            track.style.transform = `translateX(-${curTransIndex * (cardW + gap)}px)`;
+        }
+
+        document.getElementById('btn-prev')?.addEventListener('click', () => {
+            curTransIndex = Math.max(0, curTransIndex - 1);
+            moveSlider();
+        });
+        document.getElementById('btn-next')?.addEventListener('click', () => {
+            curTransIndex = Math.min(getMaxIndex(), curTransIndex + 1);
+            moveSlider();
+        });
+        window.addEventListener('resize', () => {
+            curTransIndex = Math.min(curTransIndex, getMaxIndex());
+            moveSlider();
+        });
+
+        // ════════════════════════════════════════════
+        // AI POSTURE ENGINE
+        // ════════════════════════════════════════════
+        let poseResults = null;
+        let poseReady = false;
+
+        function initPose() {
+            if (typeof Pose === 'undefined') return;
+            try {
+                const pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+                pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: .5, minTrackingConfidence: .5 });
+                pose.onResults(r => { poseResults = r; drawPose(r); });
+                window.mpPose = pose;
+                poseReady = true;
+            } catch(e) { poseReady = false; }
+        }
+        initPose();
+
+        function drawPose(results) {
+            const canvas = document.getElementById('analysis-canvas');
+            const img = document.getElementById('preview-img');
+            canvas.width = img.offsetWidth; canvas.height = img.offsetHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!results.poseLandmarks) return;
+
+            const landmarks = results.poseLandmarks;
+            const connections = [
+                [0,1],[1,2],[2,3],[3,7],[0,4],[4,5],[5,6],[6,8],
+                [9,10],[11,12],[11,13],[13,15],[12,14],[14,16],
+                [11,23],[12,24],[23,24],[23,25],[24,26],[25,27],
+                [26,28],[27,29],[28,30],[29,31],[30,32]
+            ];
+
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            connections.forEach(([i, j]) => {
+                const a = landmarks[i];
+                const b = landmarks[j];
+                if (!a || !b) return;
+                ctx.beginPath();
+                ctx.moveTo(a.x * canvas.width, a.y * canvas.height);
+                ctx.lineTo(b.x * canvas.width, b.y * canvas.height);
+                ctx.stroke();
+            });
+
+            landmarks.forEach(lm => {
+                ctx.beginPath();
+                ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+        }
+
+        function loadPhoto(input) {
+            if (!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('preview-img');
+                img.src = e.target.result;
+                document.getElementById('upload-area').style.display = 'none';
+                document.getElementById('preview-wrap').style.display = 'block';
+                img.onload = () => {
+                    const canvas = document.getElementById('analysis-canvas');
+                    canvas.width = img.offsetWidth; canvas.height = img.offsetHeight;
+                };
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        async function runAnalysis() {
+            const name = document.getElementById('ai-name').value.trim();
+            const age = parseFloat(document.getElementById('ai-age').value);
+            const weight = parseFloat(document.getElementById('ai-weight').value);
+            const height = parseFloat(document.getElementById('ai-height').value);
+            const gender = document.getElementById('ai-gender').value;
+            const activity = document.getElementById('ai-activity').value;
+            const email = document.getElementById('ai-email').value.trim();
+            const img = document.getElementById('preview-img');
+
+            if (!img.src || !img.src.startsWith('data:')) { alert('Please upload a body photo first.'); return; }
+            if (!name || !age || !weight || !height || !gender || !activity) { alert('Please fill in all your details.'); return; }
+
+            const btn = document.getElementById('analyze-btn');
+            document.getElementById('btn-text').textContent = 'SCANNING BODY PROFILES…';
+            document.getElementById('scan-pulse').style.display = 'block';
+            btn.disabled = true;
+
+            if (poseReady && window.mpPose) {
+                try { await window.mpPose.send({ image: img }); } catch(e) {}
+            }
+
+            setTimeout(() => {
+                const report = computeReport(name, age, weight, height, gender, activity, poseResults);
+                renderReport(report, email);
+                document.getElementById('btn-text').textContent = '🔬 RE-SCAN PROFILE';
+                document.getElementById('scan-pulse').style.display = 'none';
+                btn.disabled = false;
+                document.getElementById('report-placeholder').style.display = 'none';
+                document.getElementById('report-output').style.display = 'block';
+                document.getElementById('report-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 2500);
+        }
+
+        function computeReport(name, age, weight, height, gender, activity, pose) {
+            const heightM = height / 100;
+            const bmi = +(weight / (heightM * heightM)).toFixed(1);
+            let bmr = gender === 'male' ? (10 * weight) + (6.25 * height) - (5 * age) + 5 : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            bmr = Math.round(bmr);
+            const actMap = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725 };
+            const tdee = Math.round(bmr * (actMap[activity] || 1.375));
+            const protein = Math.round(weight * 2.0);
+            const water = +(weight * 0.033).toFixed(1);
+            
+            let bmiStatus = 'Normal';
+            if (bmi < 18.5) bmiStatus = 'Underweight';
+            else if (bmi < 25) bmiStatus = 'Normal';
+            else if (bmi < 30) bmiStatus = 'Overweight';
+            else bmiStatus = 'Obese';
+
+            const fitnessScore = Math.min(100, Math.max(20, Math.round(100 - (Math.abs(bmi - 22) * 3.5) + (activity === 'active' ? 8 : 0))));
+            
+            // media pipe metrics
+            let postureScore = 85, symmetryScore = 90;
+            let shoulderWidth = '42 cm', hipWidth = '38 cm', frameSize = 'Medium';
+            let shoulderImbalance = 'Symmetrical', neckAlignment = 'Neutral';
+
+            if (pose && pose.poseLandmarks && pose.poseLandmarks.length >= 25) {
+                const get = i => pose.poseLandmarks[i];
+                const d = (a, b) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+                
+                const lShoulder = get(11), rShoulder = get(12);
+                const lHip = get(23), rHip = get(24);
+                const lAnkle = get(27), rAnkle = get(28);
+
+                const swRatio = d(lShoulder, rShoulder);
+                const hwRatio = d(lHip, rHip);
+                const bodyH = d(lShoulder, lAnkle) || 0.6;
+
+                shoulderWidth = `${(swRatio * height / bodyH).toFixed(0)} cm`;
+                hipWidth = `${(hwRatio * height / bodyH).toFixed(0)} cm`;
+                frameSize = swRatio / hwRatio > 1.3 ? 'Large (Athletic)' : 'Medium';
+
+                const sImb = Math.abs(lShoulder.y - rShoulder.y) * 100;
+                shoulderImbalance = sImb < 1.5 ? 'Symmetrical' : `Slight tilt (${sImb.toFixed(1)}%)`;
+                postureScore = Math.round(Math.max(50, 100 - sImb * 8));
+                symmetryScore = Math.round(Math.max(50, 100 - sImb * 5));
+            }
+
+            return { name, age, weight, height, gender, bmi, bmiStatus, bmr, tdee, protein, water, fitnessScore, postureScore, symmetryScore, shoulderWidth, hipWidth, frameSize, shoulderImbalance, neckAlignment };
+        }
+
+        function renderReport(r, email) {
+            const html = `
+                <div class="report-header">
+                    <div class="report-logo">SR GYMS — AI FITNESS ANALYSIS REPORT</div>
+                    <div class="report-date">Generated ${new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div>
+                    <div class="report-client-name">${r.name.toUpperCase()}</div>
+                    <div class="report-subtitle">${r.age} yrs · ${r.weight} kg · ${r.height} cm · ${r.gender.toUpperCase()}</div>
+                    <div class="report-score-ring">
+                        <div class="score-circle" style="--pct:${r.fitnessScore}%"><span class="score-value">${r.fitnessScore}</span></div>
+                        <div class="score-label-wrap">
+                            <div class="score-title">Physical Fitness Score</div>
+                            <div class="score-sub">Out of 100 · ${r.fitnessScore >= 75 ? 'Excellent' : r.fitnessScore >= 55 ? 'Optimal' : 'Needs Conditioning'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="rs-title">📊 Health Metrics</div>
+                    <div class="metrics-grid">
+                        <div class="metric-chip"><div class="metric-name">BMI</div><div class="metric-val">${r.bmi} <span class="badge">${r.bmiStatus}</span></div></div>
+                        <div class="metric-chip"><div class="metric-name">BMR</div><div class="metric-val">${r.bmr}<span class="unit">kcal/day</span></div></div>
+                        <div class="metric-chip"><div class="metric-name">TDEE (Maintenance)</div><div class="metric-val">${r.tdee}<span class="unit">kcal/day</span></div></div>
+                        <div class="metric-chip"><div class="metric-name">Protein Target</div><div class="metric-val">${r.protein}<span class="unit">g/day</span></div></div>
+                        <div class="metric-chip"><div class="metric-name">Water Intake</div><div class="metric-val">${r.water}<span class="unit">L/day</span></div></div>
+                        <div class="metric-chip"><div class="metric-name">Frame Classification</div><div class="metric-val">${r.frameSize}</div></div>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="rs-title">🧍 Posture & Alignment</div>
+                    <div class="posture-meter">
+                        <div class="posture-icon">⚖️</div>
+                        <div class="posture-info">
+                            <div class="posture-name">Posture Score</div>
+                            <div class="posture-bar-track"><div class="posture-bar-fill" style="width:${r.postureScore}%;"></div></div>
+                        </div>
+                        <div class="posture-score">${r.postureScore}/100</div>
+                    </div>
+                    <div class="posture-meter">
+                        <div class="posture-icon">🔄</div>
+                        <div class="posture-info">
+                            <div class="posture-name">Symmetry Index</div>
+                            <div class="posture-bar-track"><div class="posture-bar-fill" style="width:${r.symmetryScore}%;"></div></div>
+                        </div>
+                        <div class="posture-score">${r.symmetryScore}/100</div>
+                    </div>
+                    <div class="metrics-grid" style="margin-top: 1rem;">
+                        <div class="metric-chip"><div class="metric-name">Shoulder Alignment</div><div class="metric-val" style="font-size: 0.95rem;">${r.shoulderImbalance}</div></div>
+                        <div class="metric-chip"><div class="metric-name">Shoulder Width</div><div class="metric-val" style="font-size: 0.95rem;">${r.shoulderWidth}</div></div>
+                        <div class="metric-chip"><div class="metric-name">Hip Width</div><div class="metric-val" style="font-size: 0.95rem;">${r.hipWidth}</div></div>
+                        <div class="metric-chip"><div class="metric-name">Spine Alignment</div><div class="metric-val" style="font-size: 0.95rem;">Optimal (Vertical)</div></div>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <div class="rs-title">💡 Personalized Directives</div>
+                    <ul class="recommendation-list">
+                        <li><strong>Workout Strategy:</strong> Target compound loading (squats, bench press, overhead lifts) 3-4x weekly.</li>
+                        <li><strong>Caloric Direction:</strong> ${r.bmi > 25 ? `${r.tdee - 450} kcal/day (450 kcal deficit for body recomp)` : `${r.tdee + 300} kcal/day (300 kcal surplus for muscle gain)`}</li>
+                        <li><strong>Macronutrient Focus:</strong> Hit ${r.protein}g protein daily to fuel nitrogen synthesis.</li>
+                        <li><strong>Recovery Priority:</strong> Perform weekly structural steam recovery sessions.</li>
+                    </ul>
+                </div>
+
+                <div class="report-actions">
+                    <button class="btn-download btn-dl-primary" onclick="window.print()">🖨️ PRINT PDF</button>
+                    <button class="btn-download btn-dl-outline" onclick="scrollToSection('#pricing')">VIEW MEMBERSHIPS</button>
+                </div>
+            `;
+            document.getElementById('report-output').innerHTML = html;
+            // Store report data to localStorage so it shows in the client portal
+            localStorage.setItem('last_scan_report', JSON.stringify(r));
+        }
+
+        function scrollToSection(id) {
+            document.querySelector(id)?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ════════════════════════════════════════════
+        // PORTAL MANAGEMENT (Simulated Client/Admin Auth)
+        // ════════════════════════════════════════════
+        let currentPortalMode = 'client'; // client or admin
+        let isRegistering = false;
+
+        function openPortalModal(type) {
+            currentPortalMode = type;
+            isRegistering = false;
+            const modal = document.getElementById('portalModal');
+            const title = document.getElementById('portalTitle');
+            const sub = document.getElementById('portalSub');
+            const userLabel = document.getElementById('userLabel');
+            const portalSwitch = document.getElementById('portalSwitch');
+            
+            document.getElementById('portalLoginForm').reset();
+            
+            if (type === 'client') {
+                title.textContent = "CLIENT PORTAL LOGIN";
+                sub.textContent = "Sign in to track your workouts, logs, and AI report";
+                userLabel.textContent = "EMAIL ADDRESS";
+                portalSwitch.style.display = "block";
+            } else {
+                title.textContent = "ADMIN DASHBOARD LOGIN";
+                sub.textContent = "Enter staff credentials to manage gym databases";
+                userLabel.textContent = "ADMIN ACCOUNT ID";
+                portalSwitch.style.display = "none"; // Admin registration not allowed
+            }
+            
+            modal.classList.add('open');
+        }
+
+        function closePortalModal() {
+            document.getElementById('portalModal').classList.remove('open');
+        }
+
+        function togglePortalMode() {
+            isRegistering = !isRegistering;
+            const title = document.getElementById('portalTitle');
+            const sub = document.getElementById('portalSub');
+            const btnText = document.getElementById('portalSubmitText');
+            const portalSwitch = document.getElementById('portalSwitch');
+
+            if (isRegistering) {
+                title.textContent = "CLIENT REGISTER";
+                sub.textContent = "Create an account to start storing fitness analysis profiles";
+                btnText.textContent = "CREATE ACCOUNT";
+                portalSwitch.innerHTML = 'Already have an account? <a onclick="togglePortalMode()">Sign in here</a>';
+            } else {
+                title.textContent = "CLIENT PORTAL LOGIN";
+                sub.textContent = "Sign in to track your workouts, logs, and AI report";
+                btnText.textContent = "SIGN IN";
+                portalSwitch.innerHTML = 'Don\'t have an account? <a onclick="togglePortalMode()">Register here</a>';
+            }
+        }
+
+        function handlePortalLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('portalUser').value.trim();
+            const pass = document.getElementById('portalPass').value;
+            
+            if (currentPortalMode === 'client') {
+                if (isRegistering) {
+                    // Registration
+                    let users = JSON.parse(localStorage.getItem('gym_clients') || '[]');
+                    if (users.some(u => u.email === user)) {
+                        alert('This email is already registered!');
+                        return;
+                    }
+                    users.push({ email: user, password: pass, workoutLogs: [], reports: [] });
+                    localStorage.setItem('gym_clients', JSON.stringify(users));
+                    alert('Registration successful! Please sign in.');
+                    togglePortalMode();
+                } else {
+                    // Login
+                    let users = JSON.parse(localStorage.getItem('gym_clients') || '[]');
+                    const foundUser = users.find(u => u.email === user && u.password === pass);
+                    if (foundUser || (user === 'demo@email.com' && pass === 'password') || (user === 'client' && pass === 'client')) {
+                        // Success!
+                        localStorage.setItem('logged_in_client', user);
+                        alert('Access Granted! Entering Client Portal.');
+                        window.location.href = 'client_portal.html';
+                    } else {
+                        alert('Invalid client credentials! Use "client" / "client" or create an account.');
+                    }
+                }
+            } else {
+                // Admin Login
+                if ((user === 'admin' && pass === 'admin') || (user === 'staff' && pass === 'staff')) {
+                    localStorage.setItem('logged_in_admin', user);
+                    alert('Access Granted! Entering Admin Dashboard.');
+                    window.location.href = 'admin_portal.html';
+                } else {
+                    alert('Invalid admin credentials! Use staff account ID "admin" and password "admin".');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
